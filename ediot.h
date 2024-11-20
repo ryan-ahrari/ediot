@@ -46,39 +46,81 @@ enum 	editorKey{
 
 enum 	editorHighlight{
 		HL_NORMAL = 0,
+		HL_COMMENT,
+		HL_MLCOMMENT,
+		HL_KEYWORD1,
+		HL_KEYWORD2,
+		HL_STRING,
 		HL_NUMBER,
 		HL_MATCH	
 };
 
+#define HL_HIGHLIGHT_NUMBERS (1<<0)
+
+#define HL_HIGHLIGHT_STRINGS (1<<1)
+
 
 //Data
 //
+struct editorSyntax{
+	char *filetype;
+	char **filematch;
+	char **keywords;
+	char *singleline_comment_start;
+	char *multiline_comment_start;
+	char *multiline_comment_end;
+	int  flags;
+};
+
 typedef struct 	editorRow{
-			
-			int size;
-			int rsize;
-			char *chars;
-			char *render;
-			unsigned char *hl;
+			int 		idx;
+			int 		size;
+			int 		rsize;
+			char 		*chars;
+			char 		*render;
+			unsigned char 	*hl;
+			int		hl_open_comment;
 } editorRow;
 
 struct 	editorConfiguration{
-		int 		cx, cy;
-		int 		rx;
-		int 		rowoff;
-		int 		coloff;
-		int 		screenrows;
-		int 		screencols;
-		int 		numrows;
-		editorRow 	*row;
-		int		dirty;
-		char 		*filename;
-		char		statusmsg[80];
-		time_t		statusmsg_time;
-		struct termios 	termios_orig;
+		int 			cx, cy;
+		int 			rx;
+		int 			rowoff;
+		int 			coloff;
+		int 			screenrows;
+		int 			screencols;
+		int 			numrows;
+		editorRow 		*row;
+		int			dirty;
+		char 			*filename;
+		char			statusmsg[80];
+		time_t			statusmsg_time;
+		struct editorSyntax 	*syntax;
+		struct termios 		termios_orig;
 };
 
 struct 	editorConfiguration E;
+
+
+//Filetypes
+//
+char *C_HL_extensions[] = {".c", ".h", ".cpp", NULL};
+
+char *C_HL_keywords[] 	= {
+	"switch", "if", "while", "for", "break", "continue", "return", "else", "struct", "union", "typedef", "static", "enum", "class", "case",  "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|",  "void|", NULL
+};
+
+struct editorSyntax HLDB[] = {
+	{
+		"c",
+		C_HL_extensions,
+		C_HL_keywords,
+		"//", "/*", "*/",
+		HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+	},
+};
+
+#define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
 
 
 //Prototypes
@@ -112,6 +154,8 @@ int 	is_seperator(int c);
 void 	editorUpdateSyntax(editorRow *row);
 
 int 	editorSyntaxToColor(int hl);
+
+void 	editorSelectSyntaxHighlight();
 
 
 //Row Operations
